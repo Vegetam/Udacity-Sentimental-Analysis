@@ -1,0 +1,58 @@
+
+PROJECT REPORT
+==============================================================
+
+OBJECTIVE
+  Build a transformer-based binary classifier (DemoGPT) to
+  predict the sentiment of IMDB movie reviews (pos/neg).
+
+DATASET
+  - Source       : IMDB (HuggingFace datasets library)
+  - Training set : 25,000 reviews -> 22,500 train / 2,500 val
+  - Test set     : 25,000 reviews
+  - Balance      : Perfectly balanced (50% pos, 50% neg)
+  - Avg length   : ~235 words per review
+
+MODEL ARCHITECTURE (DemoGPT)
+  - Token + Positional Embeddings  (dim=256)
+  - 4x TransformerEncoder layers   (4 heads, FFN=512, GELU)
+  - Global Average Pooling with PAD masking
+  - LayerNorm + Dropout(0.4)
+  - Linear classifier head (-> 2 logits)
+  - Total parameters: ~7.2M
+
+TRAINING CONFIGURATION
+  - Optimizer    : AdamW  (lr=2e-4, weight_decay=1e-2)
+  - Scheduler    : Warmup (2 epochs) + Cosine Annealing
+  - Loss         : CrossEntropyLoss with label smoothing (0.1)
+  - Early stopping: patience=3 epochs
+  - Batch size   : 64
+  - Gradient clip: max_norm=1.0
+  - Max seq len  : 300 tokens
+
+RESULTS
+  - Best Val Accuracy  : 87.66%
+  - Final Test Accuracy: 85.41%  (passes >75% requirement)
+
+KEY TAKEAWAYS
+
+  1. Transformer encoders are highly effective for sentiment
+     classification even with a modest vocabulary and sequence
+     length. A 4-layer model achieves over 85% accuracy on
+     this benchmark without any pretrained embeddings.
+
+  2. Padding masks are critical. Without masking PAD tokens
+     during attention and pooling, the model wastes capacity
+     attending to meaningless positions, hurting both accuracy
+     and training stability.
+
+  3. Overfitting is a key challenge with transformers on small
+     datasets. Label smoothing, higher dropout (0.4), and early
+     stopping are essential regularisation techniques to keep
+     train/val accuracy aligned.
+
+  4. Dataset balance (50/50 split) in IMDB makes accuracy a
+     reliable metric. In real-world imbalanced datasets,
+     F1-score or AUC-ROC should be preferred alongside accuracy.
+
+==============================================================
